@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791872121747,
+      "tag": "0000_wild_wallop",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791873865442,
+      "tag": "0001_lowly_shotgun",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791895645469,
+      "tag": "0002_overjoyed_turbo",
+      "breakpoints": true
+    }
+  ]
+}

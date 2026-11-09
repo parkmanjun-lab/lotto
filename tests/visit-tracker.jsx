@@ -1,0 +1,57 @@
+const {JSDOM} = await import(process.env.LOTTO_TEST_JSDOM || 'jsdom');
+import React, {act} from 'react';
+import assert from 'node:assert/strict';
+import Tracker from '../components/VisitTracker';
+import {getRecordProof, listRecordProofs} from '../lib/visitor-privacy';
+const dom = new JSDOM('<div id="root"></div>', {url: 'https://lotto-notes.parkmanjun.chatgpt.site'});
+for (const property of ['window', 'document', 'navigator', 'localStorage', 'HTMLElement', 'Event']) Object.defineProperty(globalThis, property, {value: dom.window[property], configurable: true});
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+const {createRoot} = await import('react-dom/client');
+const realTimer = globalThis.setTimeout, realClear = globalThis.clearTimeout;
+let scheduled, cancelled = false;
+const visitTimer = Symbol('synthetic-visit-timer');
+globalThis.setTimeout = (callback, delay, ...args) => {
+  if (delay !== 1500) return realTimer(callback, delay, ...args);
+  scheduled = callback; cancelled = false; return visitTimer;
+};
+globalThis.clearTimeout = timer => { if (timer === visitTimer) cancelled = true; else realClear(timer); };
+let requests = [];
+globalThis.fetch = async (url, options) => {
+  const body = JSON.parse(options.body);
+  assert.equal(getRecordProof('visit', body.visitId), body.deleteSecret, 'proof persisted before transmission');
+  requests.push({url, ...options, body});
+  throw Error('synthetic lost response');
+};
+for (const mode of ['browser', 'standalone', 'ios-standalone']) {
+  window.matchMedia = () => ({matches: mode === 'standalone'});
+  navigator.standalone = mode === 'ios-standalone';
+  const root = createRoot(document.getElementById('root'));
+  await act(async () => root.render(<Tracker />));
+  assert.equal(requests.length, 0, 'no initial blocking request');
+  await act(async () => scheduled());
+  assert.equal(requests.length, 1, 'notice-only flow has no permission gate');
+  assert.equal(requests[0].url, '/api/visit');
+  assert.equal(requests[0].body.displayMode, mode === 'browser' ? 'browser' : 'standalone');
+  assert.deepEqual(Object.keys(requests[0].body).sort(), ['deleteSecret', 'displayMode', 'visitId']);
+  assert.match(requests[0].body.visitId, /^[0-9a-f-]{36}$/);
+  assert.match(requests[0].body.deleteSecret, /^[A-Za-z0-9_-]{43}$/);
+  assert(requests[0].keepalive);
+  assert.equal(getRecordProof('visit', requests[0].body.visitId), requests[0].body.deleteSecret, 'lost response retains deletion capability');
+  await act(async () => scheduled());
+  assert.equal(requests.length, 1, 'timer callback cannot duplicate a sent visit');
+  await act(async () => root.unmount());
+  assert(cancelled);
+  requests = [];
+}
+assert.equal(listRecordProofs().length, 3);
+const storagePrototype = dom.window.Storage.prototype, originalSetItem = storagePrototype.setItem;
+storagePrototype.setItem = () => { throw Error('synthetic storage blocked'); };
+const blockedRoot = createRoot(document.getElementById('root'));
+await act(async () => blockedRoot.render(<Tracker />));
+await act(async () => scheduled());
+assert.equal(requests.length, 0, 'proof persistence failure prevents an undeletable visit');
+await act(async () => blockedRoot.unmount());
+storagePrototype.setItem = originalSetItem;
+globalThis.setTimeout = realTimer;
+globalThis.clearTimeout = realClear;
+console.log('Visit tracker: deferred/no consent gate, minimal body, browser/iOS modes, pre-send capability persistence and failure isolation pass');

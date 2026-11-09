@@ -1,0 +1,6 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const page=fs.readFileSync('app/page.tsx','utf8'),layout=fs.readFileSync('app/layout.tsx','utf8'),manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest'));
+for(const s of [page,layout,JSON.stringify(manifest)])assert(!s.includes('로또 노트')&&!s.includes('LOTTO NOTES'));
+assert(page.includes('aria-label="로또 6/45 홈"'));assert(page.includes('<span>로또 6/45</span>'));assert(page.includes('LOTTO 6/45'));assert(page.includes('/app-icon-small.png?v=22'));assert(layout.includes("title:'로또 6/45 |"));assert(layout.includes("title:'로또 6/45',statusBarStyle"));assert.equal(manifest.name,'로또 6/45');assert.equal(manifest.short_name,'로또 6/45');for(const k of ['id','start_url','scope'])assert.equal(manifest[k],'/');assert(page.includes("STORE='lotto-notes:saved:v1'"));assert(fs.readFileSync('lib/app-updates.ts','utf8').includes("UPDATE_STORE='lotto-notes:update-session:v1'"));
+for(const name of ['app-icon.svg','favicon.svg','icon-maskable.svg']){const s=fs.readFileSync(`public/${name}`,'utf8');assert(s.includes('data:image/png;base64,'));assert(!s.includes('http://')||s.includes('http://www.w3.org/2000/svg'));}
+console.log('Branding PASS: visible names, browser/PWA/Apple labels, icons, fixed origin identity and storage keys.');

@@ -1,0 +1,52 @@
+{
+  "releases": [
+    {
+      "archive": "lotto-startup-assets-v27.tar.gz",
+      "sha256": "dbed1d09d1f341b00900fac2f09b638c6b6259a2b7ef72387a1b37a07b128f0a",
+      "assets": [
+        "_next/static/chunks/app-route-prefetch-policy-CfKhBbEq.js",
+        "_next/static/chunks/framework-D_rUT4EX.js",
+        "_next/static/chunks/index-j6WuieOV.js",
+        "_next/static/chunks/layout-segment-context-CKdrlW98.js",
+        "_next/static/chunks/page-DOJDO5hW.js",
+        "_next/static/chunks/page-nhlMNOwB.js",
+        "_next/static/chunks/rolldown-runtime-C60lm6uB.js",
+        "_next/static/chunks/streamed-icons-BbokXyyW.js",
+        "_next/static/css/index.Cy7zyKYC.css"
+      ]
+    },
+    {
+      "archive": "lotto-optional-panels-v28.tar.gz",
+      "sha256": "761f5224e32b10857c3492948926f780b6600b8a1e128842c206cf4cf3dedc3d",
+      "assets": [
+        "_next/static/chunks/OptionalPanels-hDmR2NM3.js",
+        "_next/static/chunks/app-route-prefetch-policy-BPgjE3Gr.js",
+        "_next/static/chunks/framework-D_rUT4EX.js",
+        "_next/static/chunks/index-BwFipXs1.js",
+        "_next/static/chunks/layout-segment-context-DM-q6M7D.js",
+        "_next/static/chunks/page-C3ohSYS4.js",
+        "_next/static/chunks/page-DOJDO5hW.js",
+        "_next/static/chunks/rolldown-runtime-C60lm6uB.js",
+        "_next/static/chunks/streamed-icons-Cs-m6aYg.js",
+        "_next/static/css/index.Cy7zyKYC.css"
+      ]
+    }
+  ],
+  "files": {
+    "_next/static/chunks/OptionalPanels-hDmR2NM3.js": "70262d04c74991cfa950c78769352f2de3734972ee1e97db394630d0594dd923",
+    "_next/static/chunks/app-route-prefetch-policy-BPgjE3Gr.js": "7278fcaea26ce224ddd31eded8254ea971a3b9b90698b8037dea204c35f1e301",
+    "_next/static/chunks/app-route-prefetch-policy-CfKhBbEq.js": "331868f4782dcaead80632c1c405a64ca2b08d149cbcb68065095e4d286f61e2",
+    "_next/static/chunks/framework-D_rUT4EX.js": "939d0fabebb3b2f01753bb866b067d8d3384fb06da19f0e6557609d3b1a9f4f7",
+    "_next/static/chunks/index-BwFipXs1.js": "99890b9c444d9a903c5660967c16666cb1798c2a53f3693d356b3e929de14fb0",
+    "_next/static/chunks/index-j6WuieOV.js": "de2c45eb924839ea458b9bc0c139d723987ed40ea8cc35c86a8a87d014852049",
+    "_next/static/chunks/layout-segment-context-CKdrlW98.js": "60ea9a0d07476d626793d1ee267fd908f4055c16c29af476a3e36e043564c40e",
+    "_next/static/chunks/layout-segment-context-DM-q6M7D.js": "fe444f7d66e6c9e0297c04450b2b24487a6811a70994df8f57a9ac5db2933ca4",
+    "_next/static/chunks/page-C3ohSYS4.js": "73831c3b74bed5a0eea31a32277d3bad70af3aa6b03dd54d6ae0eb14b18e99f0",
+    "_next/static/chunks/page-DOJDO5hW.js": "0ea1ebdd5b12cdf843a9cd18ade665e42e53f189dfa4f19f1521b1847caf3a06",
+    "_next/static/chunks/page-nhlMNOwB.js": "46208645b026f940512fb6561ff5116db98f004b4278401d58f8d932a37fff01",
+    "_next/static/chunks/rolldown-runtime-C60lm6uB.js": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75",
+    "_next/static/chunks/streamed-icons-BbokXyyW.js": "7eb2a6b44b9c0faa7300c8dd36b0fae7a35d9f65e139dd9046b3df193aa83bc8",
+    "_next/static/chunks/streamed-icons-Cs-m6aYg.js": "7eb2a6b44b9c0faa7300c8dd36b0fae7a35d9f65e139dd9046b3df193aa83bc8",
+    "_next/static/css/index.Cy7zyKYC.css": "8639020d69de441521c5ea37d5e15caea40dd0e48727b54f09cbeb44473698cc"
+  }
+}

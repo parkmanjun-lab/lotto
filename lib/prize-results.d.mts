@@ -1,0 +1,11 @@
+import type {Draw} from './lotto.mjs';
+export type PrizeRank={rank:number,winners:number,amount:number};
+export type PrizeDraw=Draw&{ranks:PrizeRank[]};
+export type PrizeResponse={draws:PrizeDraw[],checkedAt:string,status:'live'|'saved',verification:'live'|'cached'|'conflict',source:string,taxGuide:string};
+export const TAX_GUIDE:string;
+export const RESULTS_PAGE:string;
+export const PRIZE_CRITERIA:string[];
+export function estimateNetPrize(amount:number):{tax:number,net:number};
+export function validatePrizeDraws(input:unknown,now?:number):PrizeDraw[];
+export function normalizeOfficialPrizes(raw:unknown,now?:number):PrizeDraw[];
+export function createPrizeStore(snapshot:{draws:unknown,metadata:{retrievedAt:string}},fetcher?:typeof fetch,clock?:()=>number):()=>Promise<PrizeResponse>;
