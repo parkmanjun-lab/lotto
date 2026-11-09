@@ -2,7 +2,8 @@
 // Use it when Workers static-asset upload is not available (for example, when
 // the API token is injected by a proxy that replaces the upload JWT).
 // Usage: node scripts/build-embedded-worker.mjs   (after `npm run build`)
-// Env:   WORKER_NAME, D1_DATABASE_ID, D1_DATABASE_NAME, WORKER_VARS (JSON object of plain vars)
+// Env:   WORKER_NAME, D1_DATABASE_ID, D1_DATABASE_NAME, WORKER_VARS (JSON object of plain vars),
+//        PLACEMENT_REGION (default aws:ap-southeast-1, next to the D1 primary in SIN; "none" turns it off)
 //
 // Static responses get an ETag (304 on If-None-Match) and a cache policy:
 //   /_next/static/*              1 year, immutable (file names carry a hash)
@@ -87,8 +88,42 @@ files.forEach((file, i) => {
 writeFileSync(join(out, "__static_manifest.js"), `${imports.join("\n")}\nexport const files = {\n${entries.join(",\n")}\n};\n`);
 writeFileSync(join(out, "embedded-entry.js"), `import app from "./index.js";
 import { files } from "./__static_manifest.js";
+import { AsyncLocalStorage } from "node:async_hooks";
+// Server-Timing on /api/* responses: number of D1 round trips and their total time.
+const timing = new AsyncLocalStorage();
+let patched = false;
+function patchD1(db) {
+  if (patched || !db) return;
+  patched = true;
+  const wrap = (proto, name) => {
+    const original = proto[name];
+    if (typeof original !== "function") return;
+    proto[name] = async function (...args) {
+      const store = timing.getStore();
+      const start = Date.now();
+      try { return await original.apply(this, args); }
+      finally { if (store) { store.count++; store.ms += Date.now() - start; } }
+    };
+  };
+  try {
+    wrap(Object.getPrototypeOf(db), "batch");
+    const statement = Object.getPrototypeOf(db.prepare("SELECT 1"));
+    for (const name of ["first", "all", "run", "raw"]) wrap(statement, name);
+  } catch {}
+}
 export default {
   async fetch(request, env, ctx) {
+    patchD1(env.DB);
+    if (new URL(request.url).pathname.startsWith("/api/")) {
+      const store = { count: 0, ms: 0 };
+      const start = Date.now();
+      const response = await timing.run(store, () => app.fetch(request, env, ctx));
+      try {
+        const headers = new Headers(response.headers);
+        headers.append("Server-Timing", \`d1;desc="\${store.count} queries";dur=\${store.ms}, total;dur=\${Date.now() - start}\`);
+        return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+      } catch { return response; }
+    }
     if (request.method === "GET" || request.method === "HEAD") {
       let path;
       try { path = decodeURIComponent(new URL(request.url).pathname); } catch { path = ""; }
@@ -113,6 +148,11 @@ config.main = "embedded-entry.js";
 delete config.assets;
 // *.bin files are Data modules by Wrangler's default rules.
 if (process.env.WORKER_VARS) config.vars = { ...(config.vars || {}), ...JSON.parse(process.env.WORKER_VARS) };
+// Most admin requests make several D1 round trips. Requests from Korea often land on
+// US colos (SEA, LAX) on this plan, so each round trip crossed the Pacific. Running the
+// Worker next to D1 makes it one crossing per request instead of one per query.
+const placement = process.env.PLACEMENT_REGION ?? "aws:ap-southeast-1";
+if (placement && placement !== "none") config.placement = { region: placement };
 config.d1_databases = [{ binding: "DB", database_name: dbName, database_id: dbId }];
 writeFileSync(join(out, "wrangler.json"), JSON.stringify(config));
 console.log(`Embedded ${files.length} static files into ${relative(root, out)} for Worker "${name}".`);

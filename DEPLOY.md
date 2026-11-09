@@ -4,6 +4,9 @@
 - D1: `lotto-notes-db` (APAC), id `98752310-8f73-4e56-ba2a-efc0f45a4d1a`, 바인딩 `DB`
 - 변수: `ADMIN_CANONICAL_ORIGIN`(위 주소), `ADMIN_TRUST_CF_CONNECTING_IP=1`, `RECOMMENDATION_RECORDING_ENABLED=1`
 - 관리자: 아이디 `admin`. 비밀번호는 저장소에 두지 않습니다.
+- 실행 위치: `placement.region = aws:ap-southeast-1` (D1 primary가 SIN). 한국 요청이 무료 플랜에서 SEA·LAX로 들어오는 경우가 있어,
+  Worker를 D1 옆에서 실행해야 관리자 화면이 빠릅니다. 응답 헤더 `cf-placement: remote-SIN`으로 확인합니다.
+- `/api/*` 응답에는 `Server-Timing` 헤더(D1 질의 수와 시간)가 붙습니다.
 
 ## 다시 배포하기
 
