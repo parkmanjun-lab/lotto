@@ -1,2 +1,2 @@
 // Generated from application source by scripts/app-version.mjs. Do not edit.
-export const APP_VERSION = '8b7495d01196f641fed2e480';
+export const APP_VERSION = 'a7f9890b9cb770a5ac988264';

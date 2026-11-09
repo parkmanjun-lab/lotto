@@ -3,7 +3,14 @@
 // the API token is injected by a proxy that replaces the upload JWT).
 // Usage: node scripts/build-embedded-worker.mjs   (after `npm run build`)
 // Env:   WORKER_NAME, D1_DATABASE_ID, D1_DATABASE_NAME, WORKER_VARS (JSON object of plain vars)
-import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+//
+// Static responses get an ETag (304 on If-None-Match) and a cache policy:
+//   /_next/static/*              1 year, immutable (file names carry a hash)
+//   images and fonts             1 day
+//   everything else              revalidate every time (cheap 304)
+// Rules in dist/client/_headers are applied on top (same syntax as Workers assets).
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, relative, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,8 +35,23 @@ const types = {
   ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json", ".webmanifest": "application/manifest+json",
   ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon",
-  ".txt": "text/plain; charset=utf-8", ".html": "text/html; charset=utf-8",
+  ".woff2": "font/woff2", ".otf": "font/otf", ".txt": "text/plain; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
 };
+const longLived = new Set([".png", ".svg", ".ico", ".woff2", ".otf", ".jpg", ".jpeg", ".webp"]);
+
+// Minimal _headers parser: "pattern" lines followed by indented "Name: value" lines.
+const headerRules = [];
+if (existsSync(join(client, "_headers"))) {
+  let current = null;
+  for (const line of readFileSync(join(client, "_headers"), "utf8").split("\n")) {
+    if (!line.trim() || line.trim().startsWith("#")) continue;
+    if (!/^\s/.test(line)) { current = { pattern: line.trim(), headers: {} }; headerRules.push(current); continue; }
+    const i = line.indexOf(":");
+    if (current && i > 0) current.headers[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+}
+const matches = (pattern, path) => pattern.endsWith("*") ? path.startsWith(pattern.slice(0, -1)) : pattern === path;
 
 function walk(dir) {
   return readdirSync(dir).flatMap((entry) => {
@@ -50,12 +72,15 @@ files.forEach((file, i) => {
   const moduleName = `f${i}.bin`;
   cpSync(file, join(staticDir, moduleName));
   imports.push(`import f${i} from "./__static/${moduleName}";`);
-  const immutable = urlPath.startsWith("/_next/static/");
-  const extra = {};
+  const cache = urlPath.startsWith("/_next/static/")
+    ? "public, max-age=31536000, immutable"
+    : longLived.has(extname(file)) ? "public, max-age=86400" : "public, max-age=0, must-revalidate";
+  const headers = { "Cache-Control": cache };
+  for (const rule of headerRules) if (matches(rule.pattern, urlPath)) Object.assign(headers, rule.headers);
+  const etag = `"${createHash("sha256").update(readFileSync(file)).digest("hex").slice(0, 20)}"`;
   entries.push(
     `${JSON.stringify(urlPath)}: { body: f${i}, type: ${JSON.stringify(types[extname(file)] || "application/octet-stream")}, ` +
-    `cache: ${JSON.stringify(immutable ? "public, max-age=31536000, immutable" : "public, max-age=0, must-revalidate")}, ` +
-    `extra: ${JSON.stringify(extra)} }`,
+    `etag: ${JSON.stringify(etag)}, headers: ${JSON.stringify(headers)} }`,
   );
 });
 
@@ -69,8 +94,10 @@ export default {
       try { path = decodeURIComponent(new URL(request.url).pathname); } catch { path = ""; }
       const file = files[path];
       if (file) {
-        const headers = new Headers({ "Content-Type": file.type, "Cache-Control": file.cache, "X-Robots-Tag": "noindex, nofollow, noarchive" });
-        for (const [key, value] of Object.entries(file.extra)) headers.set(key, value);
+        const headers = new Headers({ "Content-Type": file.type, "ETag": file.etag, "X-Robots-Tag": "noindex, nofollow, noarchive" });
+        for (const [key, value] of Object.entries(file.headers)) headers.set(key, value);
+        const tags = (request.headers.get("If-None-Match") || "").split(",").map((t) => t.trim().replace(/^W\\//, ""));
+        if (tags.includes(file.etag)) return new Response(null, { status: 304, headers });
         return new Response(request.method === "HEAD" ? null : file.body, { headers });
       }
     }

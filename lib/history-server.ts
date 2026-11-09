@@ -1,6 +1,7 @@
 import snapshot from '@/lib/data/history.json';
 import {normalizeOfficial,validateDraws,SOURCE,key} from '@/lib/lotto.mjs';
 import type {Draw} from '@/lib/lotto.mjs';
+import {upstreamFetch,fetchedAtOf} from '@/lib/upstream-fetch';
 // Workers may evaluate modules without a request clock. Keep date validation
 // inside GET so the snapshot is checked against the actual request time.
 let lastGood:Draw[]=[];
@@ -10,13 +11,13 @@ let pending:Promise<boolean>|null=null;
 let fresh=false;
 let conflict=false;
 async function refresh(){
-  const response=await fetch(SOURCE,{signal:AbortSignal.timeout(8000),headers:{Accept:'application/json'}});
+  const response=await upstreamFetch(SOURCE,{signal:AbortSignal.timeout(8000),headers:{Accept:'application/json'}});
   if(!response.ok)throw Error('upstream');
   const raw=await response.text();if(raw.length>5_000_000)throw Error('size');
   const draws=normalizeOfficial(JSON.parse(raw));
   if(draws.length<lastGood.length)throw Error('regression');
   for(let i=0;i<lastGood.length;i++)if(key(draws[i].numbers)!==key(lastGood[i].numbers)||draws[i].bonus!==lastGood[i].bonus)throw Error('historical correction requires review');
-  lastGood=draws;checkedAt=new Date().toISOString();return true;
+  lastGood=draws;checkedAt=new Date(fetchedAtOf(response,Date.now())).toISOString();return true;
 }
 export async function getOfficialHistory():Promise<{draws:Draw[],checkedAt:string,source:string,status:'live'|'saved',message:string,verification:'live'|'cached'|'conflict'}>{
   if(lastGood.length===0)lastGood=validateDraws(snapshot.draws);

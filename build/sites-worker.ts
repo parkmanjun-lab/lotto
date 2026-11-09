@@ -4,6 +4,8 @@ import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 export default {
   fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+    // Lets lib/upstream-fetch.ts share official data across isolates through D1.
+    (globalThis as { __siteEnv?: Cloudflare.Env }).__siteEnv = env;
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
     // the auxiliary service binding are absent from production builds.

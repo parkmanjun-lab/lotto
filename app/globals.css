@@ -197,6 +197,11 @@ footer{flex-wrap:wrap;align-items:center;gap:4px 12px}footer a{min-height:44px;d
 .admin-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));gap:8px;margin:14px 0}
 .admin-summary-item{padding:10px;background:#fff8ef;border-radius:12px;display:flex;flex-direction:column;gap:4px;font-size:12px}
 .admin-summary-item strong{font-size:19px}
+.admin-summary-item{position:relative}.admin-summary-item.is-selected{outline:2px solid #b5523b;background:#fdebe4}
+.admin-summary-button{all:unset;cursor:pointer;font:inherit}.admin-summary-button::after{content:"";position:absolute;inset:0;border-radius:12px}
+.admin-summary-button:focus-visible::after{outline:2px solid #b5523b;outline-offset:2px}
+.admin-focus{margin:4px 0 14px;padding:12px;border:1px solid #f0d9cc;border-radius:14px;background:#fffdf9}.admin-focus h3{margin:0}
+.admin-focus-meta{flex-basis:100%;font-size:12px;color:#8a6f64}
 .admin-batch{padding:14px 0;border-top:1px solid var(--line)}
 .admin-batch-header{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .admin-batch-meta,.admin-history-status,.admin-official-draw{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
