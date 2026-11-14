@@ -1,0 +1,151 @@
+/* Marking-slip theme (2026-11 redesign). Loaded after globals.css.
+   Pink slip print lines, ink-black actions, OMR timing marks on the settings card.
+   Motion: CSS only, about 0.3s, transform/opacity only, disabled by prefers-reduced-motion. No backdrop blur. */
+@font-face{font-family:"Archivo Slip";src:url('/fonts/archivo-condensed-700.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{
+ --paper:#f3f4f7;--card:#ffffff;--print:#bc2358;--print-soft:#fbe7ef;--print-line:#edb7ca;
+ --ink:#1a1b2e;--on-ink:#ffffff;--ink-soft:#45475e;--muted:#6b6d80;--line:#e2e3ea;
+ --ok:#24804f;--warn:#9a5b00;--danger:#c0303b;--green:#1a1b2e;--soft:#fbe7ef;
+ --num:"Archivo Slip","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+ --ease:cubic-bezier(.2,.8,.2,1);--t:.28s;
+}
+html,body{background:var(--paper)}
+body{color:var(--ink)}
+.app{background:var(--paper);color:var(--ink)}
+body::before{background:var(--paper)}
+.app :focus-visible{outline:3px solid var(--print);outline-offset:2px}
+
+/* header */
+.app .compact-header{background:var(--paper)}
+.app .brand{color:var(--ink);font-weight:800}
+.app .data-line{color:var(--muted)}
+.app .data-line i{background:var(--ok)}
+.app .data-line.warning{color:var(--warn)}
+.app .data-line.warning i{background:var(--warn)}
+.app .data-line button{color:var(--ink-soft)}
+.app .data-line button[aria-busy="true"] svg{animation:slip-spin .7s linear infinite}
+@keyframes slip-spin{to{transform:rotate(360deg)}}
+
+/* settings card = marking slip */
+.app .settings{position:relative;background:var(--card);border:1.5px solid var(--print-line);border-radius:10px;box-shadow:none;padding-left:30px}
+.app .settings::before{content:"";position:absolute;left:10px;top:16px;bottom:16px;width:8px;background:repeating-linear-gradient(to bottom,var(--ink) 0 5px,transparent 5px 15px);opacity:.85;pointer-events:none}
+.app .settings .periods button{position:relative;isolation:isolate;overflow:hidden;background:transparent;border:1.5px solid var(--print-line);border-radius:6px;color:var(--print);font-family:var(--num);font-weight:700;letter-spacing:.2px}
+.app .settings .periods button::after{content:"";position:absolute;inset:0;background:var(--ink);transform:scaleY(0);transform-origin:top;transition:transform var(--t) var(--ease);z-index:-1}
+.app .settings .periods .selected{color:var(--on-ink);border-color:var(--ink);background:transparent}
+.app .settings .periods .selected::after{transform:scaleY(1)}
+.app .settings .recommend-settings>summary{background:transparent;border:1.5px solid var(--print-line);border-radius:6px;color:var(--print)}
+.app .settings .recommend-settings>summary>span:last-child{color:var(--print)}
+.app .settings .query{background:var(--ink);color:var(--on-ink);border-radius:10px;font-weight:800;transition:transform .12s ease}
+.app .settings .query:active{background:var(--ink);transform:scale(.98)}
+.app .settings .query:disabled{opacity:.45}
+.app .query-note{color:var(--warn)}
+.app .range{color:var(--muted)}
+.app .criteria{color:var(--print);border-color:var(--print-line)}
+.app .criteria span{border:1px solid var(--print-line);border-radius:999px;padding:2px 9px}
+.app .settings .mixed-summary,.app .mixed-summary{background:var(--print-soft);border-color:transparent}
+.app .list-context,.app .saved-tools{background:var(--print-soft);border-color:transparent}
+
+/* number balls: white face, colour ring (approved readable style), slip colours */
+.app .ball,.app .ghost-ball{background:#ffffff;box-shadow:inset 0 0 0 2.5px var(--number-ring)}
+.app .c1,.app .ghost-ball:nth-child(1){--number-ring:#d9a200}
+.app .c2,.app .ghost-ball:nth-child(2){--number-ring:#2c82cc}
+.app .c3,.app .ghost-ball:nth-child(3){--number-ring:#dd3f48}
+.app .c4,.app .ghost-ball:nth-child(4){--number-ring:#858a98}
+.app .c5,.app .ghost-ball:nth-child(5){--number-ring:#379849}
+.app .latest-balls>.ball:last-child{--number-ring:#858a98}
+.app .ball.small{box-shadow:inset 0 0 0 2px var(--number-ring)}
+
+/* results: one slip list, dashed perforation between rows */
+.app .results{counter-reset:slip-row}
+.app .ticket{background:var(--card);border:1px solid var(--line);border-radius:0;margin:0;box-shadow:none;counter-increment:slip-row}
+.app .ticket+.ticket{border-top:1.5px dashed var(--print-line)}
+.app .ticket:first-of-type{border-radius:10px 10px 0 0}
+.app .ticket:last-of-type{border-radius:0 0 10px 10px}
+.app .ticket:first-of-type:last-of-type{border-radius:10px}
+.app .ticket:not(:has(.ticket-top)) .ticket-main::before{content:counter(slip-row,decimal-leading-zero);font:700 13px var(--num);color:var(--print);flex:0 0 18px}
+.app .ticket-selected{background:var(--print-soft)}
+.app .save{border:1.5px solid var(--line);background:transparent;color:var(--muted);border-radius:8px}
+.app .save.kept{border-color:var(--print);background:var(--print-soft);color:var(--print)}
+.app .save.kept svg{fill:currentColor;animation:slip-pop .3s var(--ease)}
+.app .ticket-details>summary{color:var(--muted)}
+.app .ticket-details>summary svg{transition:transform var(--t) var(--ease)}
+.app .pattern-reason strong{color:var(--print)}
+.app .total{background:var(--print-soft);color:var(--print);font-family:var(--num)}
+.app .saved-action{background:var(--card);border:1.5px solid var(--line);border-radius:8px;color:var(--ink)}
+.app .saved-action.danger{border-color:var(--danger);color:var(--danger)}
+.app .select-label input{accent-color:var(--print)}
+.app .recommendation-receipt{background:var(--card);border:1px solid var(--line);border-radius:8px}
+.app .result-notice{color:var(--warn)}
+.app .empty>svg{color:var(--print)}
+
+/* fresh recommendation: rows drop in 40ms apart; balls of the first row drop one by one (fewer animations = faster on phones) */
+.app .results.fresh .ticket{animation:slip-drop .3s var(--ease) both;animation-delay:calc(var(--r,0)*40ms)}
+.app .results.fresh .ticket:nth-of-type(2){--r:1}.app .results.fresh .ticket:nth-of-type(3){--r:2}.app .results.fresh .ticket:nth-of-type(4){--r:3}.app .results.fresh .ticket:nth-of-type(5){--r:4}.app .results.fresh .ticket:nth-of-type(6){--r:5}.app .results.fresh .ticket:nth-of-type(7){--r:6}.app .results.fresh .ticket:nth-of-type(8){--r:7}.app .results.fresh .ticket:nth-of-type(9){--r:8}.app .results.fresh .ticket:nth-of-type(10){--r:9}
+.app .results.fresh .ticket:first-of-type{animation:none}
+.app .results.fresh .ticket:first-of-type .ball{animation:slip-drop .3s var(--ease) both;animation-delay:calc(var(--b,0)*28ms)}
+.app .results.fresh .ticket:first-of-type .ball:nth-child(2){--b:1}.app .results.fresh .ticket:first-of-type .ball:nth-child(3){--b:2}.app .results.fresh .ticket:first-of-type .ball:nth-child(4){--b:3}.app .results.fresh .ticket:first-of-type .ball:nth-child(5){--b:4}.app .results.fresh .ticket:first-of-type .ball:nth-child(6){--b:5}
+@keyframes slip-drop{from{opacity:0;transform:translateY(-14px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes slip-pop{40%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* stats */
+.app .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:none}
+.app .settings.panel{border:1.5px solid var(--print-line)}
+.app .bar-track{background:var(--paper)}
+.app .bar-track>div{background:var(--print);transform-origin:left}
+.app .stats-fold[open] .bar-track>div{animation:slip-grow .3s var(--ease) both}
+@keyframes slip-grow{from{transform:scaleX(0)}}
+.app .pattern-list>div{border-top:1px dashed var(--print-line)}
+.app .hot-list strong,.app .frequency-row strong{font-family:var(--num)}
+
+/* prizes */
+.app .prize-navigation button,.app .prize-navigation select{background:var(--card);border:1.5px solid var(--line);border-radius:8px;color:var(--ink)}
+.app .prize-draw{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.app .prize-draw .prize-draw-heading,.app .prize-draw .prize-draw-heading strong,.app .prize-draw time,.app .prize-bonus span,.app .prize-plus{color:var(--on-ink)}
+.app .prize-balls.roll .ball{animation:slip-roll .3s var(--ease) both}
+.app .prize-balls.roll .prize-main-balls .ball:nth-child(2){animation-delay:30ms}.app .prize-balls.roll .prize-main-balls .ball:nth-child(3){animation-delay:60ms}.app .prize-balls.roll .prize-main-balls .ball:nth-child(4){animation-delay:90ms}.app .prize-balls.roll .prize-main-balls .ball:nth-child(5){animation-delay:120ms}.app .prize-balls.roll .prize-main-balls .ball:nth-child(6){animation-delay:150ms}.app .prize-balls.roll .prize-bonus .ball{animation-delay:180ms}
+@keyframes slip-roll{from{opacity:0;transform:translateX(var(--dx,28px)) rotate(var(--rot,120deg))}to{opacity:1;transform:none}}
+.app .prize-rank{background:var(--card);border:1px solid var(--line);box-shadow:none}
+.app .prize-rank-1{background:var(--print-soft);border-color:var(--print-line)}
+.app .prize-rank-heading h3{color:var(--print);font-family:var(--num)}
+.app .prize-money dd{font-family:var(--num);letter-spacing:.2px}
+.app .prize-net dd{color:var(--ink)}
+.app .prize-message{color:var(--warn)}
+
+/* common */
+.app .honest,.app .method summary,.app footer{color:var(--muted)}
+.app footer{border-color:var(--line)}
+.app .method{border-color:var(--line)}
+.app details>summary svg{transition:transform var(--t) var(--ease)}
+.app .toast{background:var(--ink);color:var(--on-ink);animation:slip-toast .28s var(--ease) both}
+@keyframes slip-toast{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translateX(-50%)}}
+.app .remove-dialog[open],.app .copy-modal{animation:slip-rise .26s var(--ease)}
+@keyframes slip-rise{from{opacity:0;transform:translateY(16px) scale(.98)}}
+.app .remove-dialog::backdrop{background:rgba(20,20,35,.48)}
+.app .modal-backdrop{background:rgba(20,20,35,.48)}
+@supports (interpolate-size:allow-keywords){
+ :root{interpolate-size:allow-keywords}
+ .app details::details-content{height:0;overflow:clip;transition:height var(--t) var(--ease),content-visibility var(--t) allow-discrete}
+ .app details[open]::details-content{height:auto}
+}
+
+/* bottom tabs: opaque (no blur), ink indicator slides to the active tab */
+.app .tabs{background:var(--card);backdrop-filter:none;border-color:var(--line);box-shadow:0 -2px 12px rgba(26,27,46,.05)}
+.app .tabs{--tab-pad:18px;padding-left:var(--tab-pad);padding-right:var(--tab-pad);gap:14px}
+@media(min-width:700px){.app .tabs{--tab-pad:28px}}
+.app .tabs::before{content:"";position:absolute;top:7px;left:var(--tab-pad);height:calc(100% - 14px - env(safe-area-inset-bottom));width:calc((100% - 2*var(--tab-pad) - 42px)/4);border-radius:14px;background:var(--ink);transform:translateX(calc(var(--ti,0)*(100% + 14px)));transition:transform var(--t) var(--ease);pointer-events:none}
+.app .tabs button{position:relative;color:var(--muted);background:transparent;transition:color var(--t)}
+.app .tabs button.active{background:transparent;color:var(--on-ink)}
+.app .tabs .badge{background:var(--print);color:#fff;animation:slip-pop .3s var(--ease)}
+
+/* tab change (not first load, so LCP stays early): the new tab's content fades up once when it mounts (cheaper than View Transitions on phones) */
+.app.tab-moved>:is(.results,.empty,.prize-results,.panel:not(.settings),.stats-fold,.latest){animation:slip-tab-in .26s var(--ease) both}
+@keyframes slip-tab-in{from{opacity:0;transform:translateY(8px)}}
+
+/* admin and privacy pages */
+.admin-app .admin-primary{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.admin-app .admin-summary-item.is-selected{border-color:var(--print);background:var(--print-soft)}
+.admin-app .admin-batch{border-top:1.5px dashed var(--print-line)}
+
+@media (prefers-reduced-motion:reduce){
+ .app *,.app *::before,.app *::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+}

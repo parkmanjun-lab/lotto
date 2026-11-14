@@ -8,7 +8,7 @@ const money=(value:number)=>`${value.toLocaleString('ko-KR')}원`;
 let cached:PrizeResponse|null=null;
 export default function PrizeResults({Ball}:PrizePanelProps){
  const [data,setData]=useState<PrizeResponse|null>(cached),[round,setRound]=useState<number|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const alive=useRef(true),inFlight=useRef(false);
+ const alive=useRef(true),inFlight=useRef(false),shownRound=useRef<number|null>(null),[roll,setRoll]=useState(0);
  async function refresh(){
   if(inFlight.current)return;inFlight.current=true;setBusy(true);setError('');
   try{
@@ -25,6 +25,7 @@ export default function PrizeResults({Ball}:PrizePanelProps){
  useEffect(()=>{alive.current=true;void refresh();const visible=()=>{if(document.visibilityState==='visible')void refresh()};document.addEventListener('visibilitychange',visible);return()=>{alive.current=false;document.removeEventListener('visibilitychange',visible)}},[]);
  const latest=data?.draws.at(-1),draw=data?.draws.find(item=>item.round===(round??latest?.round));
  const current=draw?.round??0;
+ useEffect(()=>{if(!current)return;const previous=shownRound.current;shownRound.current=current;if(previous!==null&&previous!==current)setRoll(current>previous?1:-1)},[current]);
  return <section className="prize-results" aria-labelledby="prize-heading" aria-busy={busy}>
   <div className="section-title prize-title"><h2 id="prize-heading">당첨내역</h2><button className="text-button" disabled={busy} onClick={()=>void refresh()}>{busy?'확인 중…':'당첨내역 새로고침'}</button></div>
   {error&&<p className="prize-message" role="alert">{error}{data?' 마지막 확인 내역을 보여줄게.':''}</p>}
@@ -38,7 +39,7 @@ export default function PrizeResults({Ball}:PrizePanelProps){
    </div>
    <article className="panel prize-draw" aria-label={`${draw.round}회 당첨번호`}>
     <div className="prize-draw-heading"><strong>{draw.round}회 당첨번호</strong><time dateTime={draw.date}>{draw.date} 추첨</time></div>
-    <div className="prize-balls"><div className="prize-main-balls">{draw.numbers.map(n=><Ball key={n} n={n}/>)}</div><span className="prize-plus" aria-hidden="true">+</span><div className="prize-bonus"><Ball n={draw.bonus}/><span>보너스</span></div></div>
+    <div className={`prize-balls${roll?' roll':''}`} key={current} style={{'--dx':`${roll*28}px`,'--rot':`${roll*120}deg`} as React.CSSProperties}><div className="prize-main-balls">{draw.numbers.map(n=><Ball key={n} n={n}/>)}</div><span className="prize-plus" aria-hidden="true">+</span><div className="prize-bonus"><Ball n={draw.bonus}/><span>보너스</span></div></div>
    </article>
    {latest.round<latestExpected()&&<p className="prize-message" role="status">최신 회차를 아직 확인하지 못했어. {latest.round}회까지의 검증된 내역을 보여줄게.</p>}
    <p className="prize-unit">당첨금·세후 금액은 <strong>1게임 기준</strong></p>
